@@ -1,12 +1,11 @@
-let anchoCanvas = 800;
-let altoCanvas = 400;
+let anchoCanvas, altoCanvas;
 
 let jugadorX = 15;
 let jugadorY;
 let anchoRaqueta = 10;
 let altoRaqueta = 100;
 
-let computadoraX = anchoCanvas - 25;
+let computadoraX;
 let computadoraY;
 
 let pelotaX, pelotaY;
@@ -39,9 +38,15 @@ function preload() {
 }
 
 function setup() {
+    // Canvas inicial adaptado al tamaño de la ventana
+    anchoCanvas = windowWidth * 0.9; // 90% del ancho de la pantalla
+    altoCanvas = windowHeight * 0.8; // 80% del alto de la pantalla
     createCanvas(anchoCanvas, altoCanvas);
+
     jugadorY = height / 2 - altoRaqueta / 2;
+    computadoraX = width - 25;
     computadoraY = height / 2 - altoRaqueta / 2;
+
     resetPelota();
     sonidoInicio.play();
 }
@@ -54,6 +59,19 @@ function draw() {
     moverPelota();
     moverComputadora();
     verificarColisiones();
+}
+
+function windowResized() {
+    // Recalcular el tamaño del canvas al cambiar el tamaño de la ventana
+    anchoCanvas = windowWidth * 0.9;
+    altoCanvas = windowHeight * 0.8;
+    resizeCanvas(anchoCanvas, altoCanvas);
+
+    // Ajustar posiciones relativas
+    jugadorY = height / 2 - altoRaqueta / 2;
+    computadoraX = width - 25;
+    computadoraY = height / 2 - altoRaqueta / 2;
+    resetPelota();
 }
 
 function dibujarRaquetas() {
@@ -82,13 +100,10 @@ function moverPelota() {
     pelotaX += velocidadPelotaX;
     pelotaY += velocidadPelotaY;
 
-    // Ajustar el ángulo de la pelota en función de su velocidad
     let velocidadTotal = sqrt(velocidadPelotaX * velocidadPelotaX + velocidadPelotaY * velocidadPelotaY);
     anguloPelota += velocidadTotal * 0.05;
 
-    // Colisión con los bordes superior e inferior
-    if (pelotaY - diametroPelota / 2 < 0 || 
-        pelotaY + diametroPelota / 2 > height) {
+    if (pelotaY - diametroPelota / 2 < 0 || pelotaY + diametroPelota / 2 > height) {
         velocidadPelotaY *= -1;
         sonidoRebote.play();
     }
@@ -104,27 +119,24 @@ function moverComputadora() {
 }
 
 function verificarColisiones() {
-    // Colisión con la raqueta del jugador
-    if (pelotaX - diametroPelota / 2 < jugadorX + anchoRaqueta && 
+    if (pelotaX - diametroPelota / 2 < jugadorX + anchoRaqueta &&
         pelotaY > jugadorY && pelotaY < jugadorY + altoRaqueta) {
         let puntoImpacto = pelotaY - (jugadorY + altoRaqueta / 2);
-        let factorAngulo = (puntoImpacto / (altoRaqueta / 2)) * PI / 3; // Ángulo máximo de 60 grados
+        let factorAngulo = (puntoImpacto / (altoRaqueta / 2)) * PI / 3;
         velocidadPelotaY = 10 * sin(factorAngulo);
-        velocidadPelotaX = abs(velocidadPelotaX); // Asegurar que la pelota se mueva hacia la derecha
+        velocidadPelotaX = abs(velocidadPelotaX);
         sonidoPong.play();
     }
 
-    // Colisión con la raqueta de la computadora
-    if (pelotaX + diametroPelota / 2 > computadoraX && 
+    if (pelotaX + diametroPelota / 2 > computadoraX &&
         pelotaY > computadoraY && pelotaY < computadoraY + altoRaqueta) {
         let puntoImpacto = pelotaY - (computadoraY + altoRaqueta / 2);
-        let factorAngulo = (puntoImpacto / (altoRaqueta / 2)) * PI / 3; // Ángulo máximo de 60 grados
+        let factorAngulo = (puntoImpacto / (altoRaqueta / 2)) * PI / 3;
         velocidadPelotaY = 10 * sin(factorAngulo);
-        velocidadPelotaX = -abs(velocidadPelotaX); // Asegurar que la pelota se mueva hacia la izquierda
+        velocidadPelotaX = -abs(velocidadPelotaX);
         sonidoPong.play();
     }
 
-    // Colisión con los bordes izquierdo y derecho (anotación y reinicio)
     if (pelotaX < 0) {
         computadoraScore++;
         sonidoGol.play();
